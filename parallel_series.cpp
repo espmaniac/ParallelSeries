@@ -104,11 +104,19 @@ void ParallelSeries::getToken() {
 
 		if (c == '\0' || c == '\n' || c == '\t' || c == ' ') continue;
 
-		else if (isNumber(c) || c == '.' || c ==',') {
+		else if (isNumber(c)) {
 			lexer.token.type = NUMBER;
-			for (/*lexer.token = c*/; (isNumber(c) || c == '.' || c ==','); c = expr[++lexer.index])
+			for (;isNumber(c); c = expr[++lexer.index])
 				lexer.token.value += c;
-			//--lexer.index;
+
+			if ((c == '.' || c ==',') && isNumber(expr[lexer.index + 1])) {
+				// the strtod function can ignore the comma
+				lexer.token.value += '.'; // '.' || ','
+				c = expr[++lexer.index]; // next number
+
+				for (; (isNumber(c)); c = expr[++lexer.index])
+					lexer.token.value += c;
+			}
 		}
 
 		else if (c == '-' || c == SERIES || c == LP || c == RP) {
