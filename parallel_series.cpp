@@ -1,5 +1,8 @@
 #include <iostream>
+#include <cstring>
 #include <cstdint>
+#include <cmath>
+#include <map>
 #include "parallel_series.hpp"
 
 static bool isChar(uint8_t key) {
@@ -10,12 +13,21 @@ static bool isNumber(uint8_t key) {
 	return (key >= '0' && key <= '9');
 }
 
+static const std::map<std::pair<const char*, const char*>, int8_t> METRIC_PREFIXES = { 
+	// character case is not important
+	// {SHORT PREFIX, FULL PREFIX}, value
+	{{"t", "tera"}, 12},
+	{{"g", "giga"}, 9},
+	{{"m", "mega"}, 6},
+	{{"k", "kilo"}, 3},
+	{{"m", "milli"}, -3},
+	{{"u", "micro"}, -6},
+	{{"n", "nano"}, -9},
+	{{"p", "pico"}, -12}
+};
+
 ParallelSeries::ParallelSeries() : expr(""), onSeries(nullptr), onParallel(nullptr) {
-	lexer.index = 0;
-	lexer.token.type = -1;
-	lexer.token.value = "";
-	lexer.busy = false;
-	lexer.fail = false;
+	reset();
 }
 
 ParallelSeries::~ParallelSeries() {}
@@ -33,7 +45,31 @@ double ParallelSeries::primary() {
 		}
 
 		case NUMBER: {
-			return strtod(lexer.token.value.c_str(), nullptr);
+			Lexer save = lexer;
+			double result = strtod(lexer.token.value.c_str(), nullptr);
+			
+			getToken();
+
+			if (lexer.token.type == CHARS) {
+				int8_t value = 0;
+				for (const auto &prefix : METRIC_PREFIXES) {
+					if ( //  Compare Strings without Case Sensitivity
+						strcasecmp(lexer.token.value.c_str(), prefix.first.first) == 0
+						||
+						strcasecmp(lexer.token.value.c_str(), prefix.first.second) == 0) {
+						value = prefix.second;
+						break;
+					}
+				}
+				if (value != 0)
+					result = pow(result, value);
+				else
+					error("unknown metric");
+
+			} else 
+				lexer = save;
+			
+			return result;
 		}
 
 		case '-': { // unary
@@ -42,7 +78,6 @@ double ParallelSeries::primary() {
 
 		case '+': { // unary
 			return primary();
-
 		}
 
 		default: {
@@ -70,13 +105,11 @@ double ParallelSeries::solve() {
 				break;
 			}
 			case PARALLEL: {
-				
 				if (onParallel == nullptr) {
 					error("onParallel = nullptr");
 					return 0;
 				}
 				left = onParallel(left, primary());
-
 				getToken();
 				break;
 			}
@@ -90,6 +123,13 @@ double ParallelSeries::solve() {
 	return 0;
 }
 
+void ParallelSeries::reset() {
+	lexer.index = 0;
+	lexer.token.type = -1;
+	lexer.token.value = "";
+	lexer.busy = false;
+	lexer.fail = false;
+}
 
 void ParallelSeries::getToken() {
 	if (lexer.busy || lexer.fail) {
@@ -104,9 +144,15 @@ void ParallelSeries::getToken() {
 
 		if (c == '\0' || c == '\n' || c == '\t' || c == ' ') continue;
 
+		else if(isChar(c)) {
+			lexer.token.type = CHARS;
+			for (; isChar(c); c = expr[++lexer.index])
+				lexer.token.value += c;
+		}
+
 		else if (isNumber(c)) {
 			lexer.token.type = NUMBER;
-			for (;isNumber(c); c = expr[++lexer.index])
+			for (; isNumber(c); c = expr[++lexer.index])
 				lexer.token.value += c;
 
 			if ((c == '.' || c ==',') && isNumber(expr[lexer.index + 1])) {
@@ -114,7 +160,7 @@ void ParallelSeries::getToken() {
 				lexer.token.value += '.'; // '.' || ','
 				c = expr[++lexer.index]; // next number
 
-				for (; (isNumber(c)); c = expr[++lexer.index])
+				for (; isNumber(c); c = expr[++lexer.index])
 					lexer.token.value += c;
 			}
 		}
@@ -128,6 +174,7 @@ void ParallelSeries::getToken() {
 			lexer.token.type = PARALLEL;
 			lexer.index += 2;
 		}
+
 		else {
 			std::string msg = "bad token: ";
 			msg += c;
@@ -135,6 +182,7 @@ void ParallelSeries::getToken() {
 		}
 		return;
 	}
+
 }
 
 void ParallelSeries::error(std::string msg) {

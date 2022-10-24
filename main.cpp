@@ -21,7 +21,9 @@ int main() {
 	double r = resistor.solve();
 	printf("resistor = %f\n", r);
 
-
+	resistor.reset();
+	resistor.expr = "2k + 2K || 2kilo"; // prefixes -> 8 + 8 || 8
+	printf("prefixes = %f\n", resistor.solve()); // result 12
 
 	ParallelSeries capacitor;
 

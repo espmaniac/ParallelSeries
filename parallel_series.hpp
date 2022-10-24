@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <stack>
 
 class ParallelSeries {
 public:
@@ -9,6 +8,8 @@ public:
 	~ParallelSeries();
 
 	double solve();
+
+	void reset();
 
 	std::string expr; // expression
 
@@ -25,7 +26,7 @@ private:
 	
 	// lexer token types
 	enum {
-		NUMBER = 1,
+		CHARS = 0, NUMBER = 1,
 		SERIES = '+', PARALLEL = 2,
 		LP = '(', RP = ')'
 	};
