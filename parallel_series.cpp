@@ -62,7 +62,7 @@ double ParallelSeries::primary() {
 					}
 				}
 				if (value != 0)
-					result = pow(result, value);
+					result *= pow(10, value);
 				else
 					error("unknown metric");
 
