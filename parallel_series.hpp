@@ -2,6 +2,15 @@
 
 #include <string>
 
+struct Delta {
+	double a, b, c;
+};
+
+struct Star {
+	double a, b, c;
+};
+
+
 class ParallelSeries {
 public:
 	ParallelSeries();
@@ -15,6 +24,8 @@ public:
 
 	double (*onParallel)(double, double);
 	double (*onSeries)(double, double);
+
+	Star deltaStarTransform(Delta);
 
 private:
 

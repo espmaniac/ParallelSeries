@@ -123,6 +123,45 @@ double ParallelSeries::solve() {
 	return 0;
 }
 
+Star ParallelSeries::deltaStarTransform(Delta delta) {
+	/* also known as
+	 mesh -> star
+	 pi -> star
+	 pi -> T
+	 delta -> wye
+	*/
+
+	Star output = {0.0, 0.0, 0.0};
+
+	if (onSeries == nullptr || onParallel == nullptr) {
+		error("[deltaStarTransform] onSeries or onParallel or both are nullptr");
+		return output;
+	}
+	
+	double deltaSeries = onSeries(delta.a, onSeries(delta.b, delta.c));
+
+	output.a = (delta.a * delta.c) / deltaSeries;
+
+	output.b = (delta.b * delta.c) / deltaSeries;
+
+	output.c = (delta.a * delta.b) / deltaSeries;
+
+	/* CHECK
+
+	// (a + b) = (c || (a + b))
+	double a_series_b = onParallel(delta.c, onSeries(delta.a, delta.b));
+
+	// (b + c) = (a || (b + c))
+	double b_series_c = onParallel(delta.a, onSeries(delta.b, delta.c));
+
+	// (c + a) = (b || (c + a));
+	double c_series_a = onParallel(delta.b, onSeries(delta.a, delta.c));
+
+	*/
+
+	return output;
+}
+
 void ParallelSeries::reset() {
 	lexer.index = 0;
 	lexer.token.type = -1;
