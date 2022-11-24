@@ -2,7 +2,6 @@
 #include <cstring>
 #include <cstdint>
 #include <cmath>
-#include <map>
 #include "parallel_series.hpp"
 
 static bool isChar(uint8_t key) {
@@ -12,19 +11,6 @@ static bool isChar(uint8_t key) {
 static bool isNumber(uint8_t key) {
 	return (key >= '0' && key <= '9');
 }
-
-static const std::map<std::pair<const char*, const char*>, int8_t> METRIC_PREFIXES = { 
-	// character case is not important
-	// {SHORT PREFIX, FULL PREFIX}, value
-	{{"t", "tera"}, 12},
-	{{"g", "giga"}, 9},
-	{{"m", "mega"}, 6},
-	{{"k", "kilo"}, 3},
-	{{"m", "milli"}, -3},
-	{{"u", "micro"}, -6},
-	{{"n", "nano"}, -9},
-	{{"p", "pico"}, -12}
-};
 
 ParallelSeries::ParallelSeries() : expr(""), onSeries(nullptr), onParallel(nullptr) {
 	reset();
@@ -51,18 +37,22 @@ double ParallelSeries::primary() {
 			getToken();
 
 			if (lexer.token.type == CHARS) {
-				int8_t value = 0;
-				for (const auto &prefix : METRIC_PREFIXES) {
-					if ( //  Compare Strings without Case Sensitivity
-						strcasecmp(lexer.token.value.c_str(), prefix.first.first) == 0
+				int8_t exponent = 0;
+
+				for (uint8_t i = 0; i < (sizeof(PREFIXES) / sizeof(*PREFIXES)); ++i) {
+					METRIC_PREFIX prefix = PREFIXES[i];
+					if (
+						strcmp(prefix.symbol, lexer.token.value.c_str()) == 0
 						||
-						strcasecmp(lexer.token.value.c_str(), prefix.first.second) == 0) {
-						value = prefix.second;
+						strcmp(prefix.name, lexer.token.value.c_str()) == 0
+					) {
+						exponent = prefix.exponent;
 						break;
 					}
 				}
-				if (value != 0)
-					result *= pow(10, value);
+
+				if (exponent != 0)
+					result *= pow(10, exponent);
 				else
 					error("unknown metric");
 

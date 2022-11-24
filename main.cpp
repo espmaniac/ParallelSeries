@@ -19,19 +19,20 @@ int main() {
 	//resistor.expr = "2 // (2 + 2)"; // result 1.333
 
 	double r = resistor.solve();
-	printf("resistor = %f\n", r);
+	printf("\nresistor = %f\n", r);
 
-	Star resistorStar = resistor.deltaStarTransform({.a=12.0, .b=18.0, .c=6.0});
+	Delta resistorDelta = {.a=12.0, .b=18.0, .c=6.0};
+	Star resistorStar = resistor.deltaStarTransform(resistorDelta);
 
-	printf("resistor Delta(%f, %f, %f) =\n Star(%f, %f, %f) = c + (a || b) = %f\n", 
-		12.0, 18.0, 6.0, 
+	printf("\nresistor Delta(%f, %f, %f) =\n Star(%f, %f, %f) = c + (a || b) = %f\n", 
+		resistorDelta.a, resistorDelta.b, resistorDelta.c, 
 		resistorStar.a, resistorStar.b, resistorStar.c,
 		resistor.onSeries(resistorStar.c, resistor.onParallel(resistorStar.a, resistorStar.b))
 	);
 
 	resistor.reset();
-	resistor.expr = "2k + 2K || 2kilo"; // prefixes -> 2000 + 2000 || 2000
-	printf("prefixes = %.20lf\n", resistor.solve()); // result 3000
+	resistor.expr = "2k + 2k || 2kilo"; // prefixes -> 2000 + 2000 || 2000
+	printf("\nprefixes = %.20lf\n", resistor.solve()); // result 3000
 
 	ParallelSeries capacitor;
 
@@ -48,12 +49,13 @@ int main() {
 
 	double c = capacitor.solve();
 
-	printf("capacitor = %f\n", c);
+	printf("\ncapacitor = %f\n", c);
 
-	Star capacitorStar = capacitor.deltaStarTransform({.a=12.0, .b=18.0, .c=6.0});
+	Delta capacitorDelta = {.a=12.0, .b=18.0, .c=6.0};
+	Star capacitorStar = capacitor.deltaStarTransform(capacitorDelta);
 
-	printf("capacitor Delta(%f, %f, %f) =\n Star(%f, %f, %f) = c + (a || b) = %f\n", 
-		12.0, 18.0, 6.0, 
+	printf("\ncapacitor Delta(%f, %f, %f) =\n Star(%f, %f, %f) = c + (a || b) = %f\n", 
+		capacitorDelta.a, capacitorDelta.b, capacitorDelta.c, 
 		capacitorStar.a, capacitorStar.b, capacitorStar.c,
 		capacitor.onSeries(capacitorStar.c, capacitor.onParallel(capacitorStar.a, capacitorStar.b))
 	);
