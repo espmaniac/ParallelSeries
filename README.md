@@ -29,11 +29,11 @@ printf("\nresistor = %f\n", r);
 ParallelSeries capacitor;
 
 capacitor.onSeries = [](double left, double right) -> double {
-  return (left != 0 && right != 0) ? (1 / (1/left + 1/right)) : 0;
+  return (left != 0 && right != 0) ? (1 / (1/left + 1/right)) : ((left > right) ? left : right);
 };
 
 capacitor.onParallel = [](double left, double right) -> double {
-  return left + right;
+  return (left != 0 && right != 0) ? (left + right) : 0;
 };
 
 // result 1.3333
