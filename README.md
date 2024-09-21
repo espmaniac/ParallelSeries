@@ -1,3 +1,8 @@
+[Web version repository](https://github.com/espmaniac/parallelserieshtml5)
+
+[Github.io page](https://espmaniac.github.io/parallelserieshtml5)
+
+
 Calculator for calculating series or parallel or delta or mixed connections of resistors, capacitors, inductance coils.
 
 # Code Examples
